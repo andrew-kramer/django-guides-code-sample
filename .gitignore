@@ -1,0 +1,8 @@
+django-service/fixtures.json
+data
+venv
+venv_linux
+venv_windows
+.idea
+*.env
+*.bak

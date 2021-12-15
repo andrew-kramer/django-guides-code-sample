@@ -1,0 +1,8 @@
+version: "3.9"
+
+services:
+  web:
+    environment:
+      - SKIP_STATIC_FILES=false
+      - DO_DEV_CONFIGS=true
+      - DO_DEV_INSTALLS=true

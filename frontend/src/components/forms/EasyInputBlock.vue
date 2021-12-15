@@ -1,0 +1,114 @@
+<template>
+  <div class="space-y-1">
+    <label :for="$attrs.id" class="block text-sm font-medium text-secondary-700" v-if="$slots.label || label">
+      <slot name="label">
+        <span>{{ label }}</span>
+      </slot>
+    </label>
+    <div class="mt-1">
+      <slot name="input">
+        <input :class="['appearance-none block w-full px-3 py-2 border border-secondary-300 rounded-md shadow-sm ' +
+                'placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 ' +
+                'sm:text-sm'].concat(this.$attrs.class)" v-bind="attrsWithoutClass"
+               :disabled="isDisabled ? 'disabled' : false" v-model="presentValue" />
+      </slot>
+    </div>
+    <div class="mt-1 text-sm text-secondary-400" v-if="$slots.info">
+      <slot name="info" />
+    </div>
+    <div class="mt-1" v-if="$slots.errors || (errorMessages.length)">
+      <slot name="errors">
+        <ul class="text-sm text-red-600 ml-3">
+          <li v-for="item in errorMessages" :key="item">{{ item }}</li>
+        </ul>
+      </slot>
+    </div>
+  </div>
+</template>
+
+<script>
+/**
+ * An input block -- label, input, and error field -- with containing div. The slots are all optional and intended to
+ * allow customization:
+ *   - If you omit the label slot, it will try to use the label property to fill the slot but will otherwise leave it
+ *     blank.
+ *   - If you omit the input slot, then it will use the default <input> tag filled with this component's $attr fields
+ *     (which is the easiest way to use this component for almost all cases).
+ *   - If you omit the errors slot, this component will present any errors in the standard <ul><li> format.
+ *
+ * @property  label   String  The text of the label to apply. If the "label" slot is filled, this is ignored.
+ * @property  errors  Array   A list of error messages to display for this field.
+ * @property  value   String  The INITIAL value of the field.
+ *
+ * @template  label   Overrides the default display of the label
+ * @template  input   Overrides the default <input> tag
+ * @template  errors  Overrides the default <ul><li> list for displaying validation errors
+ */
+export default {
+  name: 'EasyInputBlock',
+
+  inheritAttrs: false,
+
+  props: {
+    // The text of the label to apply. If the "label" slot is filled, this is ignored
+    label: String,
+
+    // A list of error messages to display for this field
+    errors: Array,
+
+    // The INITIAL value of the field.
+    value: {
+      type: String,
+      default: ''
+    }
+  },
+
+  data () {
+    return {
+      // The present value of the field
+      presentValue: this.value
+    }
+  },
+
+  inject: [
+    'fieldErrors',
+    'disabled'
+  ],
+
+  computed: {
+    // Array to use for v-bind instead of $attrs
+    attrsWithoutClass () {
+      // Because $attrs is a Proxy, we enumerate it and assign instead of a more direct copy method
+      const clone = {}
+      for (const i in this.$attrs) {
+        if (Object.prototype.hasOwnProperty.call(this.$attrs, i) && i !== 'class') {
+          clone[i] = this.$attrs[i]
+        }
+      }
+      return clone
+    },
+
+    // Is this field disabled?
+    isDisabled () {
+      return this.disabled?.value
+    },
+
+    // Combine our sources of error messages into one list of messages to display
+    errorMessages () {
+      const allErrors = []
+      if (this.errors !== undefined) {
+        for (const i in this.errors) {
+          allErrors.push(this.errors[i])
+        }
+      }
+      const errorList = this.fieldErrors?.value[this.$attrs.name]
+      for (const i in errorList) {
+        if (Object.prototype.hasOwnProperty.call(errorList, i)) {
+          allErrors.push(errorList[i])
+        }
+      }
+      return allErrors
+    }
+  }
+}
+</script>
